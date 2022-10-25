@@ -33,9 +33,9 @@ const Login = ({ navigation }) => {
         <View style={style.container}>
             <Image style={style.image} source={{ uri: "https://repository-images.githubusercontent.com/78664391/f7e46780-6bf6-11eb-999f-8212c69d76bc" }} />
             <Text>E-mail</Text>
-            <TextInput style={style.input} id="1" onChangeText={setEmail} ></TextInput>
+            <TextInput autoCapitalize='none' style={style.input} id="1" onChangeText={setEmail} ></TextInput>
             <Text>Senha</Text>
-            <TextInput secureTextEntry={true} style={style.input} id="3" onChangeText={setSenha}></TextInput>
+            <TextInput autoCapitalize='none' secureTextEntry={true} style={style.input} id="3" onChangeText={setSenha}></TextInput>
             <TouchableOpacity style={style.btn} onPress={() => validation()} ><Text style={{ color: "white" }}>Go</Text></TouchableOpacity>
             <TouchableOpacity style={style.btn} onPress={() => navigation.navigate("Register")} ><Text style={{ color: "white" }}>Register</Text></TouchableOpacity>
 

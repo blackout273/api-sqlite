@@ -49,13 +49,13 @@ const Register = ({ navigation }) => {
         <View style={style.container}>
             <Image style={style.image} source={{ uri: "https://repository-images.githubusercontent.com/78664391/f7e46780-6bf6-11eb-999f-8212c69d76bc" }} />
             <Text>E-mail</Text>
-            <TextInput style={style.input} onChangeText={setEmail} ></TextInput>
+            <TextInput autoCapitalize='none' style={style.input} onChangeText={setEmail} ></TextInput>
             <Text>Usuário</Text>
-            <TextInput style={style.input} onChangeText={setUsuario}></TextInput>
+            <TextInput autoCapitalize='none' style={style.input} onChangeText={setUsuario}></TextInput>
             <Text>Senha</Text>
-            <TextInput secureTextEntry={true} style={style.input} onChangeText={setSenha1}></TextInput>
+            <TextInput autoCapitalize='none' secureTextEntry={true} style={style.input} onChangeText={setSenha1}></TextInput>
             <Text>Senha</Text>
-            <TextInput secureTextEntry={true} style={style.input} onChangeText={setSenha2}></TextInput>
+            <TextInput autoCapitalize='none' secureTextEntry={true} style={style.input} onChangeText={setSenha2}></TextInput>
             <TouchableOpacity style={style.btn} onPress={() => validation()} ><Text style={{ color: "white" }}>Register</Text></TouchableOpacity>
             <TouchableOpacity style={style.btn} onPress={() => navigation.navigate("Login")} ><Text style={{ color: "white" }}>Login</Text></TouchableOpacity>
         </View>

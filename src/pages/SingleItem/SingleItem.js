@@ -75,13 +75,13 @@ const SingleItem = ({ navigation, route }) => {
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
                         <Text>E-mail</Text>
-                        <TextInput style={styles.input} onChangeText={setEmail} placeholder={route.params.email} ></TextInput>
+                        <TextInput autoCapitalize='none' style={styles.input} onChangeText={setEmail} placeholder={route.params.email} ></TextInput>
                         <Text>Usuário</Text>
-                        <TextInput style={styles.input} onChangeText={setUsuario} placeholder={route.params.usuario} ></TextInput>
+                        <TextInput autoCapitalize='none' style={styles.input} onChangeText={setUsuario} placeholder={route.params.usuario} ></TextInput>
                         <Text>Senha</Text>
-                        <TextInput secureTextEntry={true} style={styles.input} onChangeText={setSenha1}></TextInput>
+                        <TextInput autoCapitalize='none' secureTextEntry={true} style={styles.input} onChangeText={setSenha1}></TextInput>
                         <Text>Senha</Text>
-                        <TextInput secureTextEntry={true} style={styles.input} onChangeText={setSenha2}></TextInput>
+                        <TextInput autoCapitalize='none' secureTextEntry={true} style={styles.input} onChangeText={setSenha2}></TextInput>
                         <TouchableOpacity onPress={() => atualizar(route.params.id)} ><Text style={styles.btn2}>Atualizar</Text></TouchableOpacity>
                         <Pressable
                             style={[styles.button, styles.buttonClose]}
