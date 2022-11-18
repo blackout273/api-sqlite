@@ -2,56 +2,69 @@ const axios = require('axios')
 
 
 
-class GraphqlService {
+class APIservices {
   constructor() {
     axios.create({
       baseURL: "http://localhost:3000/",
       headers: "application/json"
     })
   }
-
-  async getAllUsers(){
-    return await axios.post("http://localhost:3000/", {
-      "query": `query{
-        consultaUsuarios {
-          nome
-        }
-      }`}).then(({data})=>{
-        const usuarios = data.data.consultaUsuarios
-        return usuarios
-      }).catch(err => {
-        console.log(err)
-      })
+ 
+  async transformToHash(userPassword){
+    var data = JSON.stringify({
+      "userPassword": userPassword
+    });
+  
+    var config = {
+      method: 'post',
+      url: 'https://api-encrypt-three.vercel.app',
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Methods': '*'
+    },
+      data : data
+    };
+  
+    return axios(config)
+    .then(function (response) {
+      // console.log(JSON.stringify(response.data));
+      return response.data
+    })
+    .catch(function (error) {
+      console.log(error);
+      return error
+    });
+    // return await axios.post("http://localhost:3000/",{headers:"application/json"},{
+    //   "userPassword":`${JSON.stringify(userPassword)}`
+    // })
   }
+  compareHash(userPassword,passwordFromDB){
+    var data = JSON.stringify({
+      "userPassword": userPassword,
+      "hash": passwordFromDB
+    });
+    
+    var config = {
+      method: 'post',
+      url: 'https://api-encrypt-three.vercel.app/compare',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Methods': '*'
+      },
+      data : data
+    };
+    
+    return axios(config)
+    .then(function (response) {
+      // console.log(JSON.stringify(response.data));
+      return response.data
+    })
+    .catch(function (error) {
+      // console.log(error);
+      return error
+    });
+    
 
-  async checkUser(email) {
-   return await axios.post("http://localhost:3000/", {
-      "query": `query{
-        consultaUsuario(input: {email:${JSON.stringify(email)}}) {
-          nome
-        }
-      }`}).then(({data}) => {
-        if (data.data.consultaUsuario!=null){
-          const {nome} = data.data.consultaUsuario
-          console.log(nome)
-          return nome
-        }
-      }).catch(err => {
-        console.log(err)
-      })
-
-  }
-
-  post(email, usuario, senha) {
-    console.log('request start')
-    const post = axios.post("http://localhost:3000/", {
-      "query": `mutation{
-      createUser(input:{email:${email},usuario:${usuario},senha:${senha}}){
-        result
-      }
-    }`})
-    console.log('request end')
-    return post
   }
 }
-module.exports = GraphqlService
+module.exports = APIservices

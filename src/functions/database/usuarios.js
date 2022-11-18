@@ -1,6 +1,10 @@
 import db from "./sqliteDatabase.js";
 import JWT from 'expo-jwt'
+import APIservices from "../axios/index.js";
 key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub21lIjoiTHVjYXMgTmFuaWNhIn0.L5_1mxlyOln5fex_zQ65nkLMgD7GF-KMvBwiOwxyGew"
+
+const serviceAxios = new APIservices()
+
 /**
  * INICIALIZAÇÃO DA TABELA
  * - Executa sempre, mas só cria a tabela caso não exista (primeira execução)
@@ -18,30 +22,27 @@ db.transaction((tx) => {
 
 export const create = async (obj) => {
   return new Promise(async (resolve, reject) => {
-    await checkIfUserExist(obj.email).then(result => {
-
-      return resolve(
-        db.transaction((tx) => {
-
+    let hashPassword = await serviceAxios.transformToHash(obj.senha).then(result=>result).catch(e=>e)
+    console.log(`Hash Password: ${hashPassword} ${typeof(hashPassword)} ${hashPassword.length}`)
+        db.transaction(async (tx) => {
           tx.executeSql(
             "INSERT INTO dadosUsuarios (email, senha, usuario) values (?, ?, ?);",
-            [obj.email, obj.senha, obj.usuario],
+            [obj.email, hashPassword, obj.usuario],
             //-----------------------
             (_, { rowsAffected, insertId }) => {
+              console.log(rowsAffected)     
               if (rowsAffected > 0) resolve(insertId);
               else reject("Error inserting obj: " + JSON.stringify(obj)); // insert falhou
             },
-            (_, error) => reject(error) // erro interno em tx.executeSql
+            (_, error) => {
+              console.log(error)
+              reject(error)} // erro interno em tx.executeSql
           );
-        }))
-    }).catch(erro => {
-      return reject("catch")
-    })
-
+        })
   });
 
 };
-export const checkIfUserExist = (email) => {
+export const checkIfUserExist = (email,id) => {
 
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
@@ -50,9 +51,10 @@ export const checkIfUserExist = (email) => {
         [email],
 
         async (_, { rows }) => {
-
           if (rows.length <= 0) resolve("Este email é novo")
+          else if (rows.length >=0 && rows._array[0].id == id) resolve("Este email é novo")
           else reject("Obj not found: email=" + email)
+
         },
         (_, error) => reject(error) // erro interno em tx.executeSql
       );
@@ -62,19 +64,23 @@ export const checkIfUserExist = (email) => {
 
 
 
-export const update = (id, obj) => {
+export const update = (obj) => {
   return new Promise(async (resolve, reject) => {
-    await checkIfUserExist(obj.email).then(result => {
+    let hashPassword = await serviceAxios.transformToHash(obj.senha).then(result=>result).catch(e=>e)
+    console.log(`Hash Password: ${hashPassword} ${typeof(hashPassword)} ${hashPassword.length}`)
+
+    await checkIfUserExist(obj.email,obj.id).then(result => {
       return resolve(
         db.transaction((tx) => {
           
           tx.executeSql(
             "UPDATE dadosUsuarios SET email=?, senha=?, usuario=? WHERE id=?;",
-            [obj.email, obj.senha, obj.usuario, id],
+            [obj.email, hashPassword, obj.usuario, obj.id],
             
-            (_, { rowsAffected }) => {
+            (_, { rowsAffected , rows }) => {
+              console.log(rowsAffected)
               if (rowsAffected > 0) resolve(rowsAffected);
-              else reject("Error updating obj: id=" + id);
+              else reject("Error updating obj: id=" + obj.id);
             },
             (_, error) => reject(error)
           );
@@ -89,12 +95,12 @@ export const update = (id, obj) => {
 
 
 
-async function trataSenha(senha) {
-  return JWT.decode(senha, key)
-}
+// async function trataSenha(senha) {
+//   return JWT.decode(senha, key)
+// }
 export const find = (email, senha) => {
 
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
         "SELECT * FROM dadosUsuarios WHERE email=?;",
@@ -102,8 +108,9 @@ export const find = (email, senha) => {
         //-----------------------
         async (_, { rows }) => {
           if (rows.length > 0) {
-            const senhaJWT = await trataSenha(rows._array[0].senha)
-            senhaJWT.password == senha ? resolve(rows._array[0]) : reject("Obj not found: email=" + email)
+            console.log(`Senha deste usuário: ${rows._array[0].senha}`)
+            let verifyPassword = await serviceAxios.compareHash(senha,rows._array[0].senha).then(result=>result).catch(e=>e)
+            verifyPassword == true ? resolve(rows._array[0]) : reject("Obj not found: email=" + email)
           }
           else {
             reject("Obj not found: email=" + email)
@@ -116,16 +123,16 @@ export const find = (email, senha) => {
 };
 
 
-const findByBrand = (brand) => {
+export const singleUser = (userId) => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
       //comando SQL modificável
       tx.executeSql(
-        "SELECT * FROM cars WHERE brand LIKE ?;",
-        [brand],
+        "SELECT * FROM dadosUsuarios WHERE id = ?;",
+        [userId],
         //-----------------------
         (_, { rows }) => {
-          if (rows.length > 0) resolve(rows._array);
+          if (rows.length > 0) resolve([{ usuario: rows._array[0].usuario, email: rows._array[0].email, id: rows._array[0].id }]);
           else reject("Obj not found: brand=" + brand);
         },
         (_, error) => reject(error)
@@ -179,7 +186,7 @@ export default {
   create,
   update,
   find,
-  findByBrand,
+  singleUser,
   all,
   remove,
 };

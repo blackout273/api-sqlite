@@ -11,9 +11,9 @@ const Login = ({ navigation }) => {
     async function validation() {
         if (email && senha) {
             try {
-                await find(email,senha).then(x => {
+                await find(email,senha).then(userData => {
                     alert("Bem-Vindo")
-                    navigation.navigate("MainPage")
+                    navigation.navigate("MainPage",userData)
                 }).catch(err => {
                     alert("Username/Senha errada")
                     navigation.navigate("Login")

@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react'
 import { Text, View, Modal, TextInput, Pressable, StyleSheet, TouchableOpacity, Alert } from 'react-native'
 import { remove, update } from '../../functions/database/usuarios'
 
+import JWT from 'expo-jwt'
+key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub21lIjoiTHVjYXMgTmFuaWNhIn0.L5_1mxlyOln5fex_zQ65nkLMgD7GF-KMvBwiOwxyGew"
+
 const SingleItem = ({ navigation, route }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [email, setEmail] = useState()
@@ -28,20 +31,21 @@ const SingleItem = ({ navigation, route }) => {
     async function atualizar(userID) {
 
         try {
-            if (usuario && senha1 && senha2) {
-                if (sanitizeStrings(email)) {
+            if ((usuario || route.params.selectedUser.usuario) && (senha1 && senha2)) {
+                if (sanitizeStrings(email || route.params.selectedUser.email)) {
                     if (senha1 != senha2) {
                         Alert.alert('Senhas diferentes')
                     } else {
-                        let obj = { email: email, senha: senha1, usuario: usuario }
-
-                        await update(userID, obj).then(result => {
+                        // const token = JWT.encode({ password: senha1 }, key)
+                        let obj = { email: email || route.params.selectedUser.email, senha: senha1, usuario: usuario || route.params.selectedUser.usuario , id:userID }
+                        console.log(route.params)
+                        await update(obj).then(result => {
                             alert('Usuario Atualizado com sucesso')
-                            navigation.navigate("MainPage")
+                            navigation.navigate("MainPage",route.params.adminData)
 
                         }).catch(err => {
                             alert("E-mail já utilizado")
-                            navigation.navigate("MainPage")
+                            navigation.navigate("MainPage",route.params.adminData)
 
                         })
                     }
@@ -62,7 +66,7 @@ const SingleItem = ({ navigation, route }) => {
     return (
         <View>
             <View>
-                <Text style={styles.textStyle}>Alterar ou Remover Usuário {route.params.usuario} ?</Text>
+                <Text style={styles.textStyle}>Alterar ou Remover Usuário {route.params.selectedUser.usuario} ?</Text>
             </View>
             <Modal
                 animationType="slide"
@@ -75,14 +79,14 @@ const SingleItem = ({ navigation, route }) => {
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
                         <Text>E-mail</Text>
-                        <TextInput autoCapitalize='none' style={styles.input} onChangeText={setEmail} placeholder={route.params.email} ></TextInput>
+                        <TextInput autoCapitalize='none' style={styles.input} onChangeText={setEmail} placeholder={route.params.selectedUser.email} ></TextInput>
                         <Text>Usuário</Text>
-                        <TextInput autoCapitalize='none' style={styles.input} onChangeText={setUsuario} placeholder={route.params.usuario} ></TextInput>
+                        <TextInput autoCapitalize='none' style={styles.input} onChangeText={setUsuario} placeholder={route.params.selectedUser.usuario} ></TextInput>
                         <Text>Senha</Text>
                         <TextInput autoCapitalize='none' secureTextEntry={true} style={styles.input} onChangeText={setSenha1}></TextInput>
                         <Text>Senha</Text>
                         <TextInput autoCapitalize='none' secureTextEntry={true} style={styles.input} onChangeText={setSenha2}></TextInput>
-                        <TouchableOpacity onPress={() => atualizar(route.params.id)} ><Text style={styles.btn2}>Atualizar</Text></TouchableOpacity>
+                        <TouchableOpacity onPress={() => atualizar(route.params.selectedUser.id)} ><Text style={styles.btn2}>Atualizar</Text></TouchableOpacity>
                         <Pressable
                             style={[styles.button, styles.buttonClose]}
                             onPress={() => setModalVisible(!modalVisible)}
@@ -100,8 +104,8 @@ const SingleItem = ({ navigation, route }) => {
             </Pressable>
 
             <View style={[styles.button2, styles.buttonOpen2]}>
-                <TouchableOpacity onPress={() => chamadoParaOVasco(route.params.id)} ><Text style={styles.textStyle}>Excluir Usuário</Text></TouchableOpacity>
-                {/* <TouchableOpacity onPress={() => atualizar(route.params.id)} ><Text style={styles.btn2}>Atualizar</Text></TouchableOpacity> */}
+                <TouchableOpacity onPress={() => chamadoParaOVasco(route.params.selectedUser.id)} ><Text style={styles.textStyle}>Excluir Usuário</Text></TouchableOpacity>
+                {/* <TouchableOpacity onPress={() => atualizar(route.params.selectedUser.id)} ><Text style={styles.btn2}>Atualizar</Text></TouchableOpacity> */}
             </View>
         </View >
 

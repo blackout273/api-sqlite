@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import { Text, View, StyleSheet, TextInput, TouchableOpacity, Image , Alert } from 'react-native'
-import { create } from '../../functions/database/usuarios'
+import { Text, View, StyleSheet, TextInput, TouchableOpacity, Image, Alert } from 'react-native'
+import { create, checkIfUserExist } from '../../functions/database/usuarios'
 import JWT from 'expo-jwt'
+import uuid from 'uuid'
 key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub21lIjoiTHVjYXMgTmFuaWNhIn0.L5_1mxlyOln5fex_zQ65nkLMgD7GF-KMvBwiOwxyGew"
 
 
@@ -24,12 +25,17 @@ const Register = ({ navigation }) => {
                     if (senha1 != senha2) {
                         Alert.alert('Senhas diferentes')
                     } else {
-
-                        const token = JWT.encode({ password: senha1 }, key)
-                        await create({ email: email, senha: token, usuario: usuario }).then(() => {
-                            Alert.alert(`Criado email: ${email}  usuario: ${usuario} `)
-                            navigation.navigate("MainPage")
-                        }).catch(err => {
+                        await checkIfUserExist(email).then(async () => {
+                            await create({ email: email, senha: senha1, usuario: usuario }).then((idUser) => { 
+                                console.log(idUser)
+                                const token = JWT.encode({ sessionID: uuid , userID:idUser }, key)
+                                Alert.alert(`Criado email: ${email}  usuario: ${usuario} `)
+                                navigation.navigate("MainPage",{id:idUser})
+                            }).catch((msg) => {
+                                console.log(msg)
+                            })
+                        }).catch((err) => {
+                            console.log(err)
                             Alert.alert(`E-mail já utilizado`)
                             navigation.navigate("Register")
                         })
