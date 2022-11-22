@@ -23,14 +23,13 @@ db.transaction((tx) => {
 export const create = async (obj) => {
   return new Promise(async (resolve, reject) => {
     let hashPassword = await serviceAxios.transformToHash(obj.senha).then(result=>result).catch(e=>e)
-    console.log(`Hash Password: ${hashPassword} ${typeof(hashPassword)} ${hashPassword.length}`)
+    // console.log(`Hash Password: ${hashPassword} ${typeof(hashPassword)} ${hashPassword.length}`)
         db.transaction(async (tx) => {
           tx.executeSql(
             "INSERT INTO dadosUsuarios (email, senha, usuario) values (?, ?, ?);",
             [obj.email, hashPassword, obj.usuario],
             //-----------------------
             (_, { rowsAffected, insertId }) => {
-              console.log(rowsAffected)     
               if (rowsAffected > 0) resolve(insertId);
               else reject("Error inserting obj: " + JSON.stringify(obj)); // insert falhou
             },
@@ -51,8 +50,11 @@ export const checkIfUserExist = (email,id) => {
         [email],
 
         async (_, { rows }) => {
+          console.log(rows)
+          // if (rows.length <= 0 && await serviceAxios.admVerifyAccount(email)) reject("Este email existe")
           if (rows.length <= 0) resolve("Este email é novo")
           else if (rows.length >=0 && rows._array[0].id == id) resolve("Este email é novo")
+          // else if (await serviceAxios.admVerifyAccount(email)) reject("Este Email é novo e não existe no escopo ADM")
           else reject("Obj not found: email=" + email)
 
         },
@@ -67,9 +69,10 @@ export const checkIfUserExist = (email,id) => {
 export const update = (obj) => {
   return new Promise(async (resolve, reject) => {
     let hashPassword = await serviceAxios.transformToHash(obj.senha).then(result=>result).catch(e=>e)
-    console.log(`Hash Password: ${hashPassword} ${typeof(hashPassword)} ${hashPassword.length}`)
+    // console.log(`Hash Password: ${hashPassword} ${typeof(hashPassword)} ${hashPassword.length}`)
 
     await checkIfUserExist(obj.email,obj.id).then(result => {
+      
       return resolve(
         db.transaction((tx) => {
           
@@ -78,7 +81,6 @@ export const update = (obj) => {
             [obj.email, hashPassword, obj.usuario, obj.id],
             
             (_, { rowsAffected , rows }) => {
-              console.log(rowsAffected)
               if (rowsAffected > 0) resolve(rowsAffected);
               else reject("Error updating obj: id=" + obj.id);
             },
@@ -108,7 +110,7 @@ export const find = (email, senha) => {
         //-----------------------
         async (_, { rows }) => {
           if (rows.length > 0) {
-            console.log(`Senha deste usuário: ${rows._array[0].senha}`)
+            // console.log(`Senha deste usuário: ${rows._array[0].senha}`)
             let verifyPassword = await serviceAxios.compareHash(senha,rows._array[0].senha).then(result=>result).catch(e=>e)
             verifyPassword == true ? resolve(rows._array[0]) : reject("Obj not found: email=" + email)
           }
@@ -174,7 +176,10 @@ export const remove = (id) => {
         [id],
         //-----------------------
         (_, { rowsAffected }) => {
-          resolve(rowsAffected);
+          console.log("remove result",rowsAffected)
+          
+          if (rowsAffected>0) resolve(rowsAffected);
+          reject("usuario removido")
         },
         (_, error) => reject(error)
       );
@@ -182,11 +187,11 @@ export const remove = (id) => {
   });
 };
 
-export default {
-  create,
-  update,
-  find,
-  singleUser,
-  all,
-  remove,
-};
+// export default {
+//   create,
+//   update,
+//   find,
+//   singleUser,
+//   all,
+//   remove,
+// };

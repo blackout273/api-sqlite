@@ -51,7 +51,7 @@ class APIservices {
 
   async admVerifyAccount(admEmail) {
     var data = JSON.stringify({
-      email: admEmail,
+      emailRoot: admEmail,
     });
 
     var config = {
@@ -65,28 +65,36 @@ class APIservices {
 
     return axios(config)
       .then((response) => {
-        if (!!response.data["Message"]) return false;
-        return true;
+        // console.log("API RESULT",response.data)
+        if (!!response.data["Message"]) {
+          return false;
+        } else {
+          return true;
+        }
       })
       .catch(() => false);
   }
-  async admCreateAdminAccount(admEmail) {
+  async admLoginAccount(admEmail, admSenha) {
     var data = JSON.stringify({
-      email: admEmail,
+      emailRoot: admEmail,
     });
 
     var config = {
       method: "post",
-      url: "https://api-admin-manager.herokuapp.com/criar-admin",
+      url: "https://api-admin-manager.herokuapp.com/login-admin",
       headers: {
         "Content-Type": "application/json",
       },
       data: data,
     };
 
-    axios(config)
-      .then((response) => {
-        console.log(JSON.stringify(response.data));
+    return axios(config)
+      .then(async (response) => {
+        if (await this.compareHash(admSenha, response.data.senha)) {
+          return response.data;
+        } else {
+          return false;
+        }
       })
       .catch((error) => error);
   }

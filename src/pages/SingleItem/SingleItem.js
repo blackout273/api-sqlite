@@ -8,8 +8,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  ActivityIndicator
 } from "react-native";
-import { remove, update } from "../../functions/database/usuarios";
+import { remove, update , find } from "../../functions/database/usuarios";
 
 import JWT from "expo-jwt";
 key =
@@ -21,16 +22,18 @@ const SingleItem = ({ navigation, route }) => {
   const [usuario, setUsuario] = useState();
   const [senha1, setSenha1] = useState();
   const [senha2, setSenha2] = useState();
+  const [loading,setLoading] = useState(false);
 
-  async function chamadoParaOVasco(userID) {
+  async function removerUsuario(userID) {
     await remove(userID)
       .then((result) => {
         Alert.alert("Usuário Excluído com sucesso.");
-        navigation.navigate("Login");
+        if (route.params.adminData) navigation.navigate("MainPage", route.params) 
+        else navigation.navigate("Login");
       })
-      .catch((err) => {
+      .catch(() => {
         Alert.alert("Erro ao tentar remover usuario.");
-        navigation.navigate("SingleItem");
+        navigation.navigate("MainPage",route.params);
       });
   }
 
@@ -42,11 +45,12 @@ const SingleItem = ({ navigation, route }) => {
 
   async function atualizar(userID) {
     try {
-      console.log(route.params);
-      if ((usuario || route.params.selectedUser.usuario) && senha1 && senha2) {
+      setLoading(true);
+      if ((usuario || route.params.selectedUser.usuario) && (senha1 && senha2)) {
         if (sanitizeStrings(email || route.params.selectedUser.email)) {
           if (senha1 != senha2) {
             Alert.alert("Senhas diferentes");
+            setLoading(false);
           } else {
             // const token = JWT.encode({ password: senha1 }, key)
             let obj = {
@@ -55,24 +59,41 @@ const SingleItem = ({ navigation, route }) => {
               usuario: usuario || route.params.selectedUser.usuario,
               id: userID,
             };
-            console.log(route.params);
             await update(obj)
-              .then((result) => {
+              .then(async () => {
                 alert("Usuario Atualizado com sucesso");
-                navigation.navigate("MainPage", route.params.adminData);
+                await find(obj.email,obj.senha).then(userData=>{
+                  if (route.params.adminData) {
+                    setLoading(false);
+                    navigation.navigate("MainPage", route.params.adminData )
+                  }
+                  else {
+                    setLoading(false);
+                    navigation.navigate("MainPage", userData )
+                  };
+                }).catch(err=>{
+                  console.log(err)
+                  setLoading(false);
+                })
+
               })
               .catch((err) => {
+                console.log("ResultErr",err)
                 alert("E-mail já utilizado");
-                navigation.navigate("MainPage", route.params.adminData);
+                setLoading(false);
+                navigation.navigate("MainPage", route.params.adminData || route.params.selectedUser );
               });
           }
         } else {
           Alert.alert("Insira um e-mail válido");
+          setLoading(false);
         }
       } else {
-        Alert.alert("Preencher todos os campos");
+        Alert.alert("Campo Senha em branco.");
+        setLoading(false);
       }
     } catch (error) {
+      setLoading(false);
       throw new Error(`Erro: ${error}`);
     }
   }
@@ -125,7 +146,8 @@ const SingleItem = ({ navigation, route }) => {
             <TouchableOpacity
               onPress={() => atualizar(route.params.selectedUser.id)}
             >
-              <Text style={styles.btn2}>Atualizar</Text>
+              {(loading && <ActivityIndicator style={styles.btn2} size="small" color="#000000"  /> || <Text style={styles.btn2}>Atualizar</Text>)}
+              
             </TouchableOpacity>
             <Pressable
               style={[styles.button, styles.buttonClose]}
@@ -145,7 +167,7 @@ const SingleItem = ({ navigation, route }) => {
 
       <View style={[styles.button2, styles.buttonOpen2]}>
         <TouchableOpacity
-          onPress={() => chamadoParaOVasco(route.params.selectedUser.id)}
+          onPress={() => removerUsuario(route.params.selectedUser.id)}
         >
           <Text style={styles.textStyle}>Excluir Usuário</Text>
         </TouchableOpacity>

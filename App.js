@@ -2,6 +2,7 @@ import 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Register } from './src/pages';
+import { RootZone } from './src/pages';
 import { Login } from './src/pages'
 import { MainPage } from './src/pages'
 import { SingleItem } from './src/pages'
@@ -28,6 +29,7 @@ export default function App() {
       <Stack.Navigator initialRouteName='Home'>
         <Stack.Screen name='Login' component={Login} />
         <Stack.Screen name='Register' component={Register} />
+        <Stack.Screen name='RootZone' component={RootZone}/>
         <Stack.Screen name='Home' component={Home} />
         <Stack.Screen name='MainPage' component={MainPage} />
         <Stack.Screen name='SingleItem' component={SingleItem} />

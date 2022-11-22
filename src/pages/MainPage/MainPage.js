@@ -7,9 +7,10 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 
-import { find, create } from "../../functions/database/administradores";
+import { checkIfIsAdmin } from "../../functions/database/administradores";
 import { all, singleUser } from "../../functions/database/usuarios";
 import APIservices from "../../functions/axios/index.js";
 
@@ -17,42 +18,68 @@ const serviceAxios = new APIservices();
 
 const MainPage = ({ navigation, route }) => {
   const [fetchData, setFetchData] = useState([]);
-  async function showAllUsers() {
-    // console.log(await serviceAxios.admVerifyAccount(route.params.email))
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-    if (await serviceAxios.admVerifyAccount(route.params.email)) {
+// useEffect(()=>{
+//   showAllUsers()
+// },[])
+
+  async function showAllUsers() {
+    setLoading(true);
+    if (await serviceAxios.admVerifyAccount(route.params.emailRoot)) {
+      setIsAdmin(true);
       let usersList = await all();
       setFetchData(usersList);
+      setLoading(false);
     } else {
-      let usersList = await singleUser(route.params.id);
-      setFetchData(usersList);
+      await checkIfIsAdmin(route.params.email)
+        .then(async () => {
+          setIsAdmin(true);
+          let usersList = await all();
+          setFetchData(usersList);
+          setLoading(false);
+        })
+        .catch(async () => {
+          setIsAdmin(false);
+          let usersList = await singleUser(route.params.id);
+          setFetchData(usersList);
+          setLoading(false);
+        });
     }
   }
-  async function isAdmin() {
-    if (await serviceAxios.admVerifyAccount(route.params.email)) return true;
-    else {
-      return false;
-    }
-  }
+
   function renderItem(navigation, item) {
-    if (isAdmin())
+    if (isAdmin) {
+      if (item.usuario != route.params.usuario) {
+        return (
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("SingleItem", {
+                selectedUser: item,
+                adminData: route.params,
+                isAdmin: isAdmin,
+              })
+            }
+          >
+            <Text style={style.items}>{item.usuario}</Text>
+          </TouchableOpacity>
+        );
+      }
+    } else {
       return (
         <TouchableOpacity
           onPress={() =>
             navigation.navigate("SingleItem", {
               selectedUser: item,
-              adminData: route.params,
+              isAdmin: isAdmin,
             })
           }
         >
           <Text style={style.items}>{item.usuario}</Text>
         </TouchableOpacity>
       );
-    return (
-      <TouchableOpacity onPress={() => navigation.navigate("SingleItem", item)}>
-        <Text style={style.items}>{item.usuario}</Text>
-      </TouchableOpacity>
-    );
+    }
   }
   return (
     <View>
@@ -60,6 +87,7 @@ const MainPage = ({ navigation, route }) => {
         onPress={() => showAllUsers()}
         title="Listar/Atualizar usuários Cadastrados Na Base"
       ></Button>
+      {loading && <ActivityIndicator size="large" color="#00ff00" />}
       {fetchData.length > 0 && (
         <FlatList
           data={fetchData}
