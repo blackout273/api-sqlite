@@ -12,12 +12,11 @@ import {
 } from "react-native";
 import { remove, update , find } from "../../functions/database/usuarios";
 
-import JWT from "expo-jwt";
-key =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub21lIjoiTHVjYXMgTmFuaWNhIn0.L5_1mxlyOln5fex_zQ65nkLMgD7GF-KMvBwiOwxyGew";
 
 const SingleItem = ({ navigation, route }) => {
+  
   const [modalVisible, setModalVisible] = useState(false);
+  const [modalExcludeVisible, setModalExcludeVisible] = useState(false);
   const [email, setEmail] = useState();
   const [usuario, setUsuario] = useState();
   const [senha1, setSenha1] = useState();
@@ -28,7 +27,7 @@ const SingleItem = ({ navigation, route }) => {
     await remove(userID)
       .then((result) => {
         Alert.alert("Usuário Excluído com sucesso.");
-        if (route.params.adminData) navigation.navigate("MainPage", route.params) 
+        if (route.params.adminData) navigation.navigate("MainPage", route.params.adminData) 
         else navigation.navigate("Login");
       })
       .catch(() => {
@@ -65,6 +64,7 @@ const SingleItem = ({ navigation, route }) => {
                 await find(obj.email,obj.senha).then(userData=>{
                   if (route.params.adminData) {
                     setLoading(false);
+                    route.params.adminData.rebote=true
                     navigation.navigate("MainPage", route.params.adminData )
                   }
                   else {
@@ -77,8 +77,8 @@ const SingleItem = ({ navigation, route }) => {
                 })
 
               })
-              .catch((err) => {
-                console.log("ResultErr",err)
+              .catch(() => {
+
                 alert("E-mail já utilizado");
                 setLoading(false);
                 navigation.navigate("MainPage", route.params.adminData || route.params.selectedUser );
@@ -101,10 +101,35 @@ const SingleItem = ({ navigation, route }) => {
   return (
     <View>
       <View>
-        <Text style={styles.textStyle}>
+        <Text style={styles.textStyleAtt}>
           Alterar ou Remover Usuário {route.params.selectedUser.usuario} ?
         </Text>
       </View>
+      <Modal
+      animationType="fade"
+      transparent={true}
+      visible={modalExcludeVisible}
+      onRequestClose={()=>{
+        setModalExcludeVisible(!modalExcludeVisible)
+      }}
+      >
+        <View style={styles.centeredView}>
+          <Text>Tem Certeza?</Text>
+          <View style={styles.container}>
+          <TouchableOpacity
+          onPress={()=>removerUsuario(route.params.selectedUser.id)}
+          >
+            <Text style={styles.btn2}>Sim</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+          onPress={()=>navigation.navigate("MainPage", route.params.adminData || route.params.selectedUser )}
+          >
+            <Text style={styles.btn2}>Não</Text>
+          </TouchableOpacity>
+          </View>
+            
+        </View>
+      </Modal>
       <Modal
         animationType="slide"
         transparent={true}
@@ -162,18 +187,25 @@ const SingleItem = ({ navigation, route }) => {
         style={[styles.button, styles.buttonOpen]}
         onPress={() => setModalVisible(true)}
       >
-        <Text style={styles.textStyle}>Atualizar</Text>
+        <Text style={styles.textStyleAtt}>Atualizar</Text>
       </Pressable>
 
       <View style={[styles.button2, styles.buttonOpen2]}>
         <TouchableOpacity
-          onPress={() => removerUsuario(route.params.selectedUser.id)}
+          onPress={() => setModalExcludeVisible(true) //removerUsuario(route.params.selectedUser.id)
+          }
         >
-          <Text style={styles.textStyle}>Excluir Usuário</Text>
+          <Text style={styles.textStyleExcluir}>Excluir Usuário</Text>
         </TouchableOpacity>
-        {/* <TouchableOpacity onPress={() => atualizar(route.params.selectedUser.id)} ><Text style={styles.btn2}>Atualizar</Text></TouchableOpacity> */}
+        
       </View>
+      <View>
+          <Text style={styles.userInfo}>ID: {route.params.selectedUser.id}</Text>
+          <Text style={styles.userInfo}>Usuario: {route.params.selectedUser.usuario}</Text>
+          <Text style={styles.userInfo}>Email: {route.params.selectedUser.email}</Text>
+        </View>
     </View>
+    
   );
 };
 
@@ -207,6 +239,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexDirection: "row",
   },
+  userInfo:{
+    margin: 10,
+    borderWidth: 1,
+    marginLeft:"10%",
+    padding: 10,
+    width:"80%",
+    borderRadius: 10,
+    color: "black",
+    borderStyle: "solid",
+    borderColor: "red",
+    textAlign:"center"
+  },
   centeredView: {
     flex: 1,
     justifyContent: "center",
@@ -234,34 +278,48 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderStyle: "solid",
     border: "black",
-    elevation: 2,
+    elevation: 2
   },
   button2: {
     padding: 10,
     elevation: 2,
   },
   buttonOpen: {
-    backgroundColor: "#FCDDBC",
+    backgroundColor: "#fff",
+    
   },
   buttonOpen2: {
-    backgroundColor: "#D9DBBC",
+    backgroundColor: "red"
   },
   buttonClose: {
     backgroundColor: "#2196F3",
+    
+    backgroundColor:"red"
   },
   buttonTextStyle: {
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
+    backgroundColor:"red"
   },
-  textStyle: {
+  textStyleAtt:{
     fontWeight: "bold",
     textAlign: "center",
+    color:"#000000"
+  },
+  textStyleExcluir: {
+    fontWeight: "bold",
+    textAlign: "center",
+    color:"#fff"
   },
   modalText: {
     marginBottom: 15,
     textAlign: "center",
   },
+  container:{
+    display:"flex",
+    flexDirection:"row"
+  }
 });
 
 export default SingleItem;

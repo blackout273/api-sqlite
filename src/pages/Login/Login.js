@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import APIservices from "../../functions/axios";
 
@@ -26,12 +27,12 @@ const Login = ({ navigation }) => {
         setLoading(true);
         await find(email, senha)
           .then((userData) => {
-            alert("Bem-Vindo");
+            Alert.alert("Bem-Vindo");
             setLoading(false);
             navigation.navigate("MainPage", userData);
           })
           .catch((err) => {
-            alert("Username/Senha errada");
+            Alert.alert("Username/Senha errada");
             navigation.navigate("Login");
             setLoading(false);
           });
@@ -124,6 +125,7 @@ const style = StyleSheet.create({
     borderColor: "black",
     marginTop: 20,
     width: 100,
+    padding:10
   },
   btnRoot: {
     backgroundColor: "orange",
@@ -135,15 +137,17 @@ const style = StyleSheet.create({
     borderColor: "black",
     marginTop: 20,
     width: 100,
+    padding:10
   },
   input: {
     textAlign: "center",
-    width: 100,
+    width: 120,
     borderWidth: 1,
     borderStyle: "solid",
     borderColor: "black",
     borderRadius: "5%",
     borderRadius: 10,
+    padding:5
   },
   image: {
     alignSelf: "center",

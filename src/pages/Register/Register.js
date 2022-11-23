@@ -41,8 +41,7 @@ const Register = ({ navigation }) => {
               .then(async () => {
                 await create({ email: email, senha: senha1, usuario: usuario })
                   .then((idUser) => {
-                    // console.log(idUser)
-                    // const token = JWT.encode({ sessionID: uuid , userID:idUser }, key)
+                    
                     Alert.alert(`Criado email: ${email}  usuario: ${usuario} `);
                     setLoadingRegister(false);
                     navigation.navigate("MainPage", { id: idUser });
@@ -117,10 +116,10 @@ const Register = ({ navigation }) => {
         <Text style={{ color: "white" }}>Login</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={style.btn}
+        style={style.btnRoot}
         onPress={() => navigation.navigate("RootZone", { Command: true })}
       >
-        <Text style={{ backgroundColor: "orange", color: "black" }}>
+        <Text>
           Conceder Root
         </Text>
       </TouchableOpacity>
@@ -138,16 +137,30 @@ const style = StyleSheet.create({
     borderStyle: "solid",
     borderColor: "black",
     marginTop: 20,
+    padding:10,
     width: 100,
+  },
+  btnRoot: {
+    backgroundColor: "orange",
+    color: "#FFFFFF",
+    alignItems: "center",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: "black",
+    marginTop: 20,
+    width: 100,
+    padding:10
   },
   input: {
     textAlign: "center",
-    width: 100,
+    width: 120,
     borderWidth: 1,
     borderStyle: "solid",
     borderColor: "black",
     borderRadius: "5%",
     borderRadius: 10,
+    padding:5
   },
   image: {
     alignSelf: "center",

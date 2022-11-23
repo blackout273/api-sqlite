@@ -15,7 +15,8 @@ db.transaction((tx) => {
   //<<<<<<<<<<<<<<<<<<<<<<<< USE ISSO APENAS DURANTE OS TESTES!!! >>>>>>>>>>>>>>>>>>>>>>>
 
   tx.executeSql(
-    "CREATE TABLE dadosUsuarios ( id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL, email VARCHAR (100), senha VARCHAR (64), usuario VARCHAR (64), createdAt DATETIME DEFAULT (CURRENT_TIMESTAMP) );"
+    // "DROP TABLE dadosUsuarios"
+    "CREATE TABLE dadosUsuarios ( id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL, email VARCHAR (100), senha VARCHAR (64), usuario VARCHAR (64), isAdmin INTEGER, createdAt DATETIME DEFAULT (CURRENT_TIMESTAMP) );"
   );
 });
 
@@ -26,8 +27,8 @@ export const create = async (obj) => {
     // console.log(`Hash Password: ${hashPassword} ${typeof(hashPassword)} ${hashPassword.length}`)
         db.transaction(async (tx) => {
           tx.executeSql(
-            "INSERT INTO dadosUsuarios (email, senha, usuario) values (?, ?, ?);",
-            [obj.email, hashPassword, obj.usuario],
+            "INSERT INTO dadosUsuarios (email, senha, usuario , isAdmin) values (?, ?, ?, ?);",
+            [obj.email, hashPassword, obj.usuario, 0],
             //-----------------------
             (_, { rowsAffected, insertId }) => {
               if (rowsAffected > 0) resolve(insertId);
@@ -95,7 +96,24 @@ export const update = (obj) => {
   });
 };
 
+export const updateAdminState=(obj)=>{
+  return new Promise(async (resolve, reject) => {
+    db.transaction((tx) => {
+          
+      tx.executeSql(
+        "UPDATE dadosUsuarios SET isAdmin=? WHERE id=?;",
+        [obj.isAdmin,obj.id],
+        
+        (_, { rowsAffected , rows }) => {
+          if (rowsAffected > 0) resolve(rowsAffected);
+          else reject("Error updating obj: id=" + obj.id);
+        },
+        (_, error) => reject(error)
+      );
+    })
 
+  });
+}
 
 // async function trataSenha(senha) {
 //   return JWT.decode(senha, key)
@@ -134,7 +152,7 @@ export const singleUser = (userId) => {
         [userId],
         //-----------------------
         (_, { rows }) => {
-          if (rows.length > 0) resolve([{ usuario: rows._array[0].usuario, email: rows._array[0].email, id: rows._array[0].id }]);
+          if (rows.length > 0) resolve([{ usuario: rows._array[0].usuario, email: rows._array[0].email, id: rows._array[0].id,isAdmin: rows._array[0].isAdmin }]);
           else reject("Obj not found: brand=" + brand);
         },
         (_, error) => reject(error)
@@ -148,14 +166,14 @@ export const all = () => {
   const usersList = []
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
-      //comando SQL modificável
+
       tx.executeSql(
         "SELECT * FROM dadosUsuarios;",
         [],
 
         (_, { rows }) => {
           for (let i = 0; i < rows._array.length; i++) {
-            usersList.push({ usuario: rows._array[i].usuario, email: rows._array[i].email, id: rows._array[i].id })
+            usersList.push({ usuario: rows._array[i].usuario, email: rows._array[i].email, id: rows._array[i].id , isAdmin: rows._array[i].isAdmin })
           }
 
           resolve(usersList)

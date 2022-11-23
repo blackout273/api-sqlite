@@ -8,12 +8,12 @@ db.transaction((tx) => {
   );
 });
 
-export const addToAdminList = async (emailRoot) => {
+export const addToAdminList = async (emailRoot,usuario) => {
   return new Promise(async (resolve, reject) => {
     db.transaction(async (tx) => {
       tx.executeSql(
-        "INSERT INTO dadosAdministradores (emailRoot) values (?);",
-        [emailRoot],
+        "INSERT INTO dadosAdministradores (emailRoot, usuario) values (?,?);",
+        [emailRoot,usuario],
         //-----------------------
         (_, { rowsAffected, insertId }) => {
           console.log(rowsAffected);
